@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YGIS Hesaplama Aracı</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Roboto', sans-serif; }
+        /* Input odaklanma efektleri */
+        input:focus, select:focus { outline: none; border-color: #f97316; ring: 2px; ring-color: #fed7aa; }
+    </style>
+</head>
+<body class="bg-gray-100 min-h-screen flex items-center justify-center p-4">
+
+    <!-- Main Calculator Card -->
+    <div class="w-full max-w-3xl bg-white rounded-xl shadow-2xl overflow-hidden border border-gray-200">
+        
+        <!-- Header Section inside Card -->
+        <div class="bg-gray-800 text-white p-6 text-center border-b-4 border-orange-500">
+            <!-- Logo Replacement Text Area -->
+            <div class="flex justify-center mb-6">
+                <div class="text-center">
+                    <h1 class="text-4xl md:text-5xl font-black tracking-tighter text-white select-none">
+                        ELKOM <span class="text-white-500">ELEKTRİK</span>
+                    </h1>
+                </div>
+            </div>
+            
+            <h2 class="text-gray-400 font-bold text-xs sm:text-sm tracking-wider mb-2 uppercase">TMMOB Elektrik Mühendisleri Odası 2025 Yılı</h2>
+            <h3 class="text-xl sm:text-3xl font-bold text-white leading-tight">
+                Yüksek Gerilim İşletme Sorumluluğu <br>
+                <span class="text-orange-500 font-medium">Hesap Makinesi</span>
+            </h3>
+        </div>
+
+        <div class="p-6 md:p-8">
+            <form id="calcForm" onsubmit="event.preventDefault(); calculatePrice();" class="space-y-6">
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Trafo Gücü -->
+                    <div>
+                        <label for="power" class="block text-sm font-bold text-gray-700 mb-2">Trafo Gücü (kVA)</label>
+                        <div class="relative">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <i class="fas fa-bolt text-orange-400"></i>
+                            </div>
+                            <input type="text" id="power" placeholder="Örn: 1000" onBlur="virgul_donustur()" required 
+                                   class="w-full pl-10 rounded-lg border-gray-300 border p-3 bg-gray-50 focus:bg-white transition text-gray-800 font-medium">
+                        </div>
+                    </div>
+
+                    <!-- Trafo Tipi -->
+                    <div>
+                        <label for="type" class="block text-sm font-bold text-gray-700 mb-2">Trafo Montaj Tipi</label>
+                        <div class="relative">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <i class="fas fa-industry text-orange-400"></i>
+                            </div>
+                            <select id="type" required class="w-full pl-10 rounded-lg border-gray-300 border p-3 bg-gray-50 focus:bg-white transition text-gray-800 font-medium appearance-none">
+                                <option value="b">Bina Tipi (Köşk)</option>
+                                <option value="d">Direk Tipi</option>
+                            </select>
+                            <div class="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none">
+                                <i class="fas fa-chevron-down text-gray-400 text-xs"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- İl -->
+                    <div>
+                        <label for="city" class="block text-sm font-bold text-gray-700 mb-2">İl Seçiniz</label>
+                        <div class="relative">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <i class="fas fa-map-marker-alt text-orange-400"></i>
+                            </div>
+                            <select id="city" onchange="updateDistricts()" required class="w-full pl-10 rounded-lg border-gray-300 border p-3 bg-gray-50 focus:bg-white transition text-gray-800 font-medium appearance-none">
+                                <option value="">Seçiniz...</option>
+                                <option value="izmir">İzmir</option>
+                                <option value="manisa">Manisa</option>
+                                <option value="aydin">Aydın</option>
+                            </select>
+                            <div class="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none">
+                                <i class="fas fa-chevron-down text-gray-400 text-xs"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- İlçe -->
+                    <div>
+                        <label for="district" class="block text-sm font-bold text-gray-700 mb-2">İlçe Seçiniz</label>
+                        <div class="relative">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <i class="fas fa-map-pin text-orange-400"></i>
+                            </div>
+                            <select id="district" disabled required class="w-full pl-10 rounded-lg border-gray-300 border p-3 bg-gray-100 text-gray-400 disabled:cursor-not-allowed transition font-medium appearance-none">
+                                <option value="">Önce İl Seçiniz</option>
+                            </select>
+                            <div class="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none">
+                                <i class="fas fa-chevron-down text-gray-400 text-xs"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="pt-4">
+                    <button type="submit" class="w-full bg-orange-600 hover:bg-orange-700 text-white font-bold py-4 rounded-lg shadow-lg hover:shadow-xl transition transform active:scale-[0.99] flex justify-center items-center gap-2 text-lg">
+                        <i class="fas fa-calculator"></i> HESAPLA
+                    </button>
+                </div>
+
+            </form>
+
+            <!-- Results Area -->
+            <div id="results" class="hidden mt-8 pt-6 border-t-2 border-dashed border-gray-200">
+                
+                <!-- Error Message -->
+                <div id="error-message" class="hidden mb-4 p-4 bg-red-50 border border-red-200 text-red-700 rounded-lg flex items-center gap-3">
+                    <i class="fas fa-exclamation-circle text-xl"></i>
+                    <span class="font-medium"></span>
+                </div>
+
+                <!-- Success Results -->
+                <div id="success-results" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div class="bg-gray-50 p-5 rounded-xl border border-gray-200 text-center group hover:border-gray-300 transition">
+                        <p class="text-gray-500 text-xs uppercase tracking-wider font-semibold mb-1">Aylık Tutar</p>
+                        <p class="text-2xl md:text-3xl font-extrabold text-gray-800" id="monthly-result">0,00 ₺</p>
+                        <p class="text-[10px] text-gray-400 mt-1">*KDV Hariç</p>
+                    </div>
+                    <div class="bg-orange-50 p-5 rounded-xl border border-orange-200 text-center group hover:border-orange-300 transition relative overflow-hidden">
+                        <div class="absolute top-0 right-0 bg-orange-200 text-orange-800 text-[10px] px-2 py-1 rounded-bl font-bold">ÖNERİLEN</div>
+                        <p class="text-orange-600 text-xs uppercase tracking-wider font-semibold mb-1">Yıllık Tutar</p>
+                        <p class="text-2xl md:text-3xl font-extrabold text-orange-600" id="yearly-result">0,00 ₺</p>
+                        <p class="text-[10px] text-orange-400 mt-1">*KDV Hariç</p>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- JavaScript Logic -->
+    <script>
+        // Data for Districts and Coefficients
+        const locationData = {
+            izmir: [
+                { name: "Balçova", coeff: 1.00 }, { name: "Bayraklı", coeff: 1.00 }, { name: "Bornova", coeff: 1.00 },
+                { name: "Buca", coeff: 1.00 }, { name: "Çiğli", coeff: 1.00 }, { name: "Gaziemir", coeff: 1.00 },
+                { name: "Güzelbahçe", coeff: 1.00 }, { name: "Karabağlar", coeff: 1.00 }, { name: "Karşıyaka", coeff: 1.00 },
+                { name: "Konak", coeff: 1.00 }, { name: "Narlıdere", coeff: 1.00 }, { name: "Aliağa", coeff: 1.00 },
+                { name: "Ödemiş", coeff: 1.00 }, { name: "Kemalpaşa", coeff: 1.00 }, { name: "Tire", coeff: 0.85 },
+                { name: "Torbalı", coeff: 0.85 }, { name: "Bergama", coeff: 0.75 }, { name: "Bayındır", coeff: 0.75 },
+                { name: "Beydağ", coeff: 0.75 }, { name: "Çeşme", coeff: 0.75 }, { name: "Dikili", coeff: 0.75 },
+                { name: "Foça", coeff: 0.75 }, { name: "Karaburun", coeff: 0.75 }, { name: "Kınık", coeff: 0.75 },
+                { name: "Kiraz", coeff: 0.75 }, { name: "Menderes", coeff: 0.75 }, { name: "Menemen", coeff: 0.75 },
+                { name: "Seferihisar", coeff: 0.75 }, { name: "Selçuk", coeff: 0.75 }, { name: "Urla", coeff: 0.75 }
+            ],
+            manisa: [
+                { name: "Şehzadeler", coeff: 1.00 }, { name: "Yunusemre", coeff: 1.00 }, { name: "Akhisar", coeff: 1.00 },
+                { name: "Alaşehir", coeff: 0.75 }, { name: "Salihli", coeff: 0.75 }, { name: "Soma", coeff: 0.75 },
+                { name: "Turgutlu", coeff: 0.75 }, { name: "Ahmetli", coeff: 0.75 }, { name: "Demirci", coeff: 0.75 },
+                { name: "Gölmarmara", coeff: 0.75 }, { name: "Gördes", coeff: 0.75 }, { name: "Kırkağaç", coeff: 0.75 },
+                { name: "Köprübaşı", coeff: 0.75 }, { name: "Kula", coeff: 0.75 }, { name: "Sarıgöl", coeff: 0.75 },
+                { name: "Saruhanlı", coeff: 0.75 }, { name: "Selendi", coeff: 0.75 }
+            ],
+            aydin: [
+                { name: "Efeler", coeff: 1.00 }, { name: "Kuşadası", coeff: 1.00 }, { name: "Nazilli", coeff: 0.75 },
+                { name: "Söke", coeff: 0.75 }, { name: "Didim", coeff: 0.75 }, { name: "Bozdoğan", coeff: 0.75 },
+                { name: "Buharkent", coeff: 0.75 }, { name: "Çine", coeff: 0.75 }, { name: "Germencik", coeff: 0.75 },
+                { name: "İncirliova", coeff: 0.75 }, { name: "Karacasu", coeff: 0.75 }, { name: "Karpuzlu", coeff: 0.75 },
+                { name: "Koçarlı", coeff: 0.75 }, { name: "Köşk", coeff: 0.75 }, { name: "Kuyucak", coeff: 0.75 },
+                { name: "Sultanhisar", coeff: 0.75 }, { name: "Yenipazar", coeff: 0.75 }
+            ]
+        };
+
+        const citySelect = document.getElementById('city');
+        const districtSelect = document.getElementById('district');
+
+        function updateDistricts() {
+            const selectedCity = citySelect.value;
+            districtSelect.innerHTML = '<option value="">İlçe Seçiniz</option>'; // Reset
+            
+            if (selectedCity && locationData[selectedCity]) {
+                districtSelect.disabled = false;
+                districtSelect.classList.remove('bg-gray-100', 'text-gray-400', 'disabled:cursor-not-allowed');
+                districtSelect.classList.add('bg-gray-50', 'text-gray-800');
+                
+                locationData[selectedCity].forEach(district => {
+                    const option = document.createElement('option');
+                    option.value = district.coeff; 
+                    option.textContent = district.name + " " + district.coeff.toFixed(2);
+                    districtSelect.appendChild(option);
+                });
+            } else {
+                districtSelect.disabled = true;
+                districtSelect.classList.add('bg-gray-100', 'text-gray-400', 'disabled:cursor-not-allowed');
+                districtSelect.classList.remove('bg-gray-50', 'text-gray-800');
+            }
+        }
+
+        // Helper to handle comma inputs
+        function virgul_donustur() {
+           var input = document.getElementById("power");
+           var val = input.value;
+           val = val.replace(",", ".");
+           input.value = val; 
+        }
+
+        function formatCurrency(num) {
+            if(isNaN(num)) return num;
+            return new Intl.NumberFormat('tr-TR', { style: 'currency', currency: 'TRY', minimumFractionDigits: 2 }).format(num);
+        }
+
+        function calculatePrice() {
+            // 1. Get Values
+            virgul_donustur(); 
+            const gucStr = document.getElementById('power').value;
+            const guc = parseFloat(gucStr);
+            const tip = document.getElementById('type').value;
+            const katsayiStr = document.getElementById('district').value;
+            const katsayi = parseFloat(katsayiStr);
+            
+            // 2. UI Elements
+            const resultsDiv = document.getElementById('results');
+            const successDiv = document.getElementById('success-results');
+            const errorDiv = document.getElementById('error-message');
+            const errorSpan = errorDiv.querySelector('span');
+            
+            resultsDiv.classList.remove('hidden');
+            
+            // 3. Validation
+            if (isNaN(guc) || isNaN(katsayi)) {
+                errorSpan.textContent = "Lütfen geçerli bir Trafo Gücü giriniz ve İlçe seçimi yapınız.";
+                errorDiv.classList.remove('hidden');
+                successDiv.classList.add('hidden');
+                return;
+            }
+
+            // 4. Calculation Logic
+            let aylik = 0;
+            let error = false;
+            let errorMsg = "";
+
+            if (tip == "d") { // Direk Tipi
+                if (guc <= 50) {
+                    aylik = katsayi * 3887;
+                } else if (guc > 50 && guc <= 160){
+                    aylik = katsayi * 4921;
+                } else if (guc > 160 && guc <= 400){
+                    aylik = katsayi * 6770;
+                } else {
+                    error = true;
+                    errorMsg = "400 kVA üzerinde trafo gücü direk tipi olamaz.";
+                }
+            } else if (tip == "b") { // Bina Tipi
+                if (guc <= 50) {
+                    aylik = katsayi * 4921;
+                } else if (guc > 50 && guc <= 160){
+                    aylik = katsayi * 4921;
+                } else if (guc > 160 && guc < 400){
+                    aylik = katsayi * 6770;
+                } else if (guc == 400) {
+                    aylik = katsayi * 8802;
+                } else if (guc > 400 && guc <= 5000){
+                    aylik = katsayi * (((guc - 400) * 5.34) + 8802);
+                } else if (guc > 5000){
+                    aylik = katsayi * ((4600 * 5.34) + ((guc - 5000) * 4.10) + 8802);
+                }
+            }
+
+            // 5. Display Results
+            if (error) {
+                errorSpan.textContent = errorMsg;
+                errorDiv.classList.remove('hidden');
+                successDiv.classList.add('hidden');
+            } else {
+                errorDiv.classList.add('hidden');
+                successDiv.classList.remove('hidden');
+                
+                let yillik = aylik * 12;
+                
+                document.getElementById('monthly-result').textContent = formatCurrency(aylik);
+                document.getElementById('yearly-result').textContent = formatCurrency(yillik);
+            }
+        }
+    </script>
+</body>
+</html>
